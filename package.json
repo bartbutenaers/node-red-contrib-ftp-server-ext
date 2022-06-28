@@ -1,0 +1,33 @@
+{
+    "name": "node-red-contrib-ftp-server-ext",
+    "version": "1.0.0",
+    "description": "A Node-RED node that allows to run an embedded FTP server inside Node-RED",
+    "dependencies": {
+        "ftp-srv": "^4.6.2",
+        "bunyan": "^1.8.15",
+        "netmask": "^2.0.2"
+    },
+    "author": {
+        "name": "Bart Butenaers"
+    },
+    "license": "Apache-2.0",
+    "keywords": [
+        "node-red",
+        "ftp",
+        "server",
+        "ftps"
+    ],
+    "bugs": {
+        "url": "https://github.com/bartbutenaers/node-red-contrib-ftp-server-ext/issues"
+    },
+    "homepage": "https://github.com/bartbutenaers/node-red-contrib-ftp-server-ext",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bartbutenaers/node-red-contrib-ftp-server-ext.git"
+    },
+    "node-red": {
+        "nodes": {
+            "ftp-server-ext": "ftp_server.js"
+        }
+    }
+}

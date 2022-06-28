@@ -1,0 +1,283 @@
+<!--
+  Copyright 2022, Bart Butenaers
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/javascript">
+    RED.nodes.registerType('ftp-server-ext', {
+        category: 'network',
+        color: 'rgb(216, 191, 216)',
+        defaults: {
+            name: {value: ''},
+            protocol: {value: 'ftp'},
+            hostname: {value: '127.0.0.1', required: true},
+            port: {value: 7021},
+            authentication: {value: "basic"},
+            blacklist: {value: [], required: false},
+            whitelist: {value: [], required: false},
+            autostart: {value: "disable"},
+            allowPassive: {value: "block"},
+            traceLog: {value: "disable"},
+            privateKey: {
+                value: ""/*,
+                validate: function(v) {
+                    // The private key is only required when the 'ftps' protocol option is selected
+                    return this.protocol === "ftp";
+                }*/
+            },
+            publicCertificate: {value: ""},
+            certificationAuthority: {value: ""},
+            passiveAddressResolver: {value: "client"},
+            passiveDataHostname: {value: ""},
+            passiveStartPort: {value: 1024},
+            passiveEndPort: {value: 65535}
+        },
+        credentials: {
+            username: {type: 'text'},
+            password: {type: 'password'}
+        },
+        inputs: 1,
+        outputs: 1,
+        outputLabels: ['commands'],
+        icon: 'font-awesome/fa-files-o',
+        label: function () {
+            return this.name || 'ftp server';
+        },
+        paletteLabel: 'ftp server',
+        align: 'left',
+        oneditprepare: function() { 
+            var node = this;
+
+            // The authentication related fields should be disabled when no authentication is required
+            $("#node-input-authentication").on('change', function() {
+                if(this.value === "basic") {
+                    $(".authentication-div").prop('disabled', false).removeClass('disabled'); 
+                }
+                else {
+                    $(".authentication-div").prop('disabled', true).addClass('disabled');
+                }
+            });
+            $("#node-input-authentication").change();
+            
+            // The 'Data hostname' field should only be enable when the address resolving requires a 'fixed' address
+            $("#node-input-passiveAddressResolver").on('change', function() {
+                if(this.value === "fixed") {
+                    $("#node-input-passiveDataHostname").prop('disabled', false).removeClass('disabled');
+                }
+                else {
+                    $("#node-input-passiveDataHostname").prop('disabled', true).addClass('disabled');
+                }
+            });
+            $("#node-input-passiveAddressResolver").change();
+
+            // Show tabsheets
+            node.tabs = RED.tabs.create({
+                id: "node-ftp-tabs",
+                onchange: function(tab) {
+                    // Show only the content (i.e. the children) of the selected tabsheet, and hide the others
+                    $("#node-ftp-tabs-content").children().hide();
+                    $("#" + tab.id).show();
+                }
+            });
+            node.tabs.addTab({
+                id: "node-ftp-tab-general",
+                label: "General"
+            });
+            node.tabs.addTab({
+                id: "node-ftp-tab-passive",
+                label: "Passive"
+            });
+            node.tabs.addTab({
+                id: "node-ftp-tab-tls",
+                label: "TLS"
+            });
+
+            $("#node-input-blacklist").typedInput({
+                type: 'json',
+                types: ['json']
+            });
+
+            $("#node-input-whitelist").typedInput({
+                type: 'json',
+                types: ['json']
+            });
+            
+            $("#node-input-protocol").change(function() {
+                // The "TLS" tabsheet should be enabled only when the 'ftps' protocol is selected.
+                // Note that enabling/disabling tabsheets is not supported by Node-RED (see https://discourse.nodered.org/t/disable-a-tabsheet-in-config-screen/32031)
+                if (this.value === "ftps") {
+                    $("#red-ui-tab-node-ftp-tab-tls").css('pointer-events', "");
+                    $("#red-ui-tab-node-ftp-tab-tls").css('opacity', "");
+                }
+                else {
+                    $("#red-ui-tab-node-ftp-tab-tls").css('pointer-events', "none");
+                    $("#red-ui-tab-node-ftp-tab-tls").css('opacity', "0.4");
+                }
+            });
+            $("#node-input-protocol").change();
+            
+            $("#node-input-allowPassive").change(function() {
+                // The "Passive" tabsheet should be enabled only when the passive mode is allowed.
+                // Note that enabling/disabling tabsheets is not supported by Node-RED (see https://discourse.nodered.org/t/disable-a-tabsheet-in-config-screen/32031)
+                if (this.value === "allow") {
+                    $("#red-ui-tab-node-ftp-tab-passive").css('pointer-events', "");
+                    $("#red-ui-tab-node-ftp-tab-passive").css('opacity', "");
+                }
+                else {
+                    $("#red-ui-tab-node-ftp-tab-passive").css('pointer-events', "none");
+                    $("#red-ui-tab-node-ftp-tab-passive").css('opacity', "0.4");
+                }
+            });
+            $("#node-input-protocol").change();
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="ftp-server-ext">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <!-- Tabsheets -->
+        <ul style="background: #fff; min-width: 600px; margin-bottom: 20px;" id="node-ftp-tabs"></ul>
+    </div>
+    <div id="node-ftp-tabs-content" style="min-height: 150px">
+        <!-- Content of all tabsheets -->
+        <div id="node-ftp-tab-general" style="position: relative; margin-top: 30px;">
+            <div class="form-row">
+                <label for="node-input-protocol"><i class="fa fa-truck"></i> Protocol</label>
+                <select id="node-input-protocol" style="width:70%;">
+                    <option value="ftp">FTP</option>
+                    <option value="ftps">FTPS</option> 
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="node-input-hostname"><i class="fa fa-globe"></i> Hostname</label>
+                <input type="text" id="node-input-hostname" placeholder="root folder">
+            </div>
+            <div class="form-row">
+                <label for="node-input-port"><i class="fa fa-sign-in"></i> Port</label>
+                <input type="number" id="node-input-port" placeholder="">
+            </div>
+            <div class="form-row">
+                <label for="node-input-rootDirectory"><i class="fa fa-folder "></i> Root</label>
+                <input type="text" id="node-input-rootDirectory" placeholder="auto-detect">
+            </div>
+            <div class="form-row">
+                <label for="node-input-authentication"><i class="fa fa-id-card-o"></i> Authenticate</label>
+                <select id="node-input-authentication" style="width:70%;">
+                    <option value="basic">Basic authentication</option>
+                    <option value="anonymous">Anonymous allowed</option> 
+                </select>
+            </div>
+            <div class="form-row authentication-div">
+                <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+                <input type="text" id="node-input-username" placeholder="dynamic">
+            </div>
+            <div class="form-row authentication-div">
+                <label for="node-input-password"><i class="fa fa-lock"></i> Password</label>
+                <input type="password" id="node-input-password" placeholder="">
+            </div>
+            <div class="form-row">
+                <label for="node-input-blacklist"><i class="fa fa-thumbs-down"></i> Blacklist</label>
+                <input type="text" id="node-input-blacklist" placeholder="dynamic">
+            </div>
+            <div class="form-row">
+                <label for="node-input-whitelist"><i class="fa fa-thumbs-up"></i> Whitelist</label>
+                <input type="text" id="node-input-whitelist" placeholder="dynamic">
+            </div>
+            <div class="form-row">
+                <label for="node-input-autostart"><i class="fa fa-refresh"></i> Autostart</label>
+                <select id="node-input-autostart" style="width:70%;">
+                    <option value="enable">Enable</option>
+                    <option value="disable">Disable</option> 
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="node-input-allowPassive"><i class="fa fa-exchange"></i> Passive</label>
+                <select id="node-input-allowPassive" style="width:70%;">
+                    <option value="allow">Allow</option>
+                    <option value="block">Block</option> 
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="node-input-traceLog"><i class="fa fa-file-text-o"></i> Trace log</label>
+                <select id="node-input-traceLog" style="width:70%;">
+                    <option value="enable">Enable</option>
+                    <option value="disable">Disable</option> 
+                </select>
+            </div>
+        </div>
+        <div id="node-ftp-tab-tls" style="position: relative; margin-top: 30px;">
+            <div class="form-row">
+                <label for="node-input-privateKey"><i class="fa fa-key "></i> Key file</label>
+                <input type="text" id="node-input-privateKey">
+            </div>
+            <div class="form-row">
+                <label for="node-input-publicCertificate"><i class="fa fa-id-card-o"></i> Certificate</label>
+                <input type="text" id="node-input-publicCertificate">
+            </div>
+            <div class="form-row">
+                <label for="node-input-certificationAuthority"><i class="fa fa-university"></i> CA</label>
+                <input type="text" id="node-input-certificationAuthority">
+            </div>
+        </div>
+        <div id="node-ftp-tab-passive" style="position: relative; margin-top: 30px;">
+            <div class="form-row">
+                <label for="node-input-passiveAddressResolver"><i class="fa fa-refresh "></i> Data address</label>
+                <select id="node-input-passiveAddressResolver" style="width:70%;">
+                    <option value="fixed">Fixed address</option>
+                    <option value="client">Client based </option> 
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="node-input-passiveDataHostname"><i class="fa fa-globe"></i> Hostname</label>
+                <input type="text" id="node-input-passiveDataHostname" placeholder="WAN address">
+            </div>
+            <div class="form-row">
+                <label for="node-input-passiveStartPort"><i class="fa fa-hand-o-right"></i> Start port</label>
+                <input type="number" id="node-input-passiveStartPort">
+            </div>
+            <div class="form-row">
+                <label for="node-input-passiveEndPort"><i class="fa fa-hand-o-left"></i> End port</label>
+                <input type="number" id="node-input-passiveEndPort">
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="ftp-server-ext">
+    <p>FTP Server for Node-RED.</p>
+    <p><strong>Protocol:</strong><br/>
+    The currently supported protocols are:
+    <ul>
+        <li><b>FTP</b>: Plain unencrypted FTP.</li>
+        <li><b>FTPS</b>: also known as FTP-SSL, is a more secure form of FTP (with security added to commands and data transfer).</li>
+    </ul>
+    Note that ***SFTP*** is currently not supported!  While FTPS adds a layer to the FTP protocol, SFTP is an entirely different protocol based on the network protocol SSH (Secure Shell).</p>
+    <p><strong>Hostname:</strong><br/>
+    The hostname must be the external IP address to accept external connections. 0.0.0.0 will listen on any available hosts for server and passive connections.</p>
+    <p><strong>Port:</strong><br/>
+    The port on which the FTP server will listen for incoming connections.  When no port is specified, the default port number will be used (21 for FTP or 22 for FTPS).</p>
+    <p><strong>Authentication:</strong><br/>
+    Specify the authentication mechanism:
+    <ul>
+        <li><b>Basic authentication</b>: A username and password is required.</li>
+        <li><b>Anonymous allowed</b>: Allow clients to authenticate using the username 'anonymous' (without a password).</li>
+    </ul></p>
+    <p><strong>Blacklist:</strong><br/>
+    Array of commands that are not allowed.  For example <code>['RMD', 'RNFR', 'RNTO']</code> will not allow users to delete directories or rename files.  When a client still wants to do it, a response code 502 is returned to that client.</p>   
+    <p><strong>Whitelist:</strong><br/>
+    Array of commands that are only allowed.  When a client wants to try another command, a response code 502 is returned to that client.</p>
+    <p><strong>Autostart:</strong><br/>
+    When the FTP should automatically start when the flow starts or after a redeploy, to avoid having to use an Inject node.</p>
+</script>

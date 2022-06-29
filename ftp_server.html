@@ -257,27 +257,68 @@
 
 <script type="text/x-red" data-help-name="ftp-server-ext">
     <p>FTP Server for Node-RED.</p>
+    
+    <h1>General</h1>
+
     <p><strong>Protocol:</strong><br/>
     The currently supported protocols are:
     <ul>
         <li><b>FTP</b>: Plain unencrypted FTP.</li>
-        <li><b>FTPS</b>: also known as FTP-SSL, is a more secure form of FTP (with security added to commands and data transfer).</li>
+        <li><b>FTPS</b>: also known as FTP-SSL, is a more secure form of FTP (with security added to commands and data transfer).  When this option is selected, the TLS tabsheet will become active.</li>
     </ul>
     Note that ***SFTP*** is currently not supported!  While FTPS adds a layer to the FTP protocol, SFTP is an entirely different protocol based on the network protocol SSH (Secure Shell).</p>
     <p><strong>Hostname:</strong><br/>
     The hostname must be the external IP address to accept external connections. 0.0.0.0 will listen on any available hosts for server and passive connections.</p>
     <p><strong>Port:</strong><br/>
     The port on which the FTP server will listen for incoming connections.  When no port is specified, the default port number will be used (21 for FTP or 22 for FTPS).</p>
+    <p><strong>Root:</strong><br/>
+    The directory that will become the root directory for the users.</p>
     <p><strong>Authentication:</strong><br/>
     Specify the authentication mechanism:
     <ul>
         <li><b>Basic authentication</b>: A username and password is required.</li>
         <li><b>Anonymous allowed</b>: Allow clients to authenticate using the username 'anonymous' (without a password).</li>
     </ul></p>
+    <p><strong>Username:</strong><br/>
+    The name of the user required to logon, in case basic authentication has been activated.</p>
+    <p><strong>Password:</strong><br/>
+    The password required to logon, in case basic authentication has been activated.</p>
     <p><strong>Blacklist:</strong><br/>
     Array of commands that are not allowed.  For example <code>['RMD', 'RNFR', 'RNTO']</code> will not allow users to delete directories or rename files.  When a client still wants to do it, a response code 502 is returned to that client.</p>   
     <p><strong>Whitelist:</strong><br/>
     Array of commands that are only allowed.  When a client wants to try another command, a response code 502 is returned to that client.</p>
     <p><strong>Autostart:</strong><br/>
     When the FTP should automatically start when the flow starts or after a redeploy, to avoid having to use an Inject node.</p>
+    <p><strong>Passive:</strong><br/>
+    Specify whether passive mode is allowed or not:
+    <ul>
+        <li><b>Allow</b>: Passive connections are allowed (next to the active connections). When this option is selected, the 'Passive' tabsheet will become active.</li>
+        <li><b>Block</b>: Passive connections are not allowed (so only active connections are allowed).</li>
+    </ul></p>
+    <p><strong>Trace log:</strong><br/>
+    Specify whether trace logging is enabled or not.  When enabled, detailed information will be written to the server-side log.</p>
+        
+    <h1>TLS</h1>
+    
+    <p><strong>Key file:</strong><br/>
+    The path to the PEM file containing the private key file, used to decrypt the data arriving from the client over TLS.</p>
+    <p><strong>Certificate:</strong><br/>
+    The path to the PEM file containing the certificate (belonging to the private key), used by the client to encrypt the data to be send over TLS.</p>
+    <p><strong>CA:</strong><br/>
+    The path to the PEM file containing the root and intermediate certifictes, corresponding to the above certificate.</p>
+    
+    <h1>Passive</h1>
+    
+    <p><strong>Data address:</strong><br/>
+    During the passive handshake connection (after a PASV command has been received), an IP address for the data will be returned to the client.  This can be one of two options:
+    <ul>
+        <li><b>Fixed address</b>: A static (external WAN) IP address.  Connections from localhost will return 127.0.0.1 to the client.</li>
+        <li><b>Client based</b>: Return a different IP address whether the client is connecting from the WAN or from the LAN.</li>
+    </ul></p>
+    <p><strong>Hostname:</strong><br/>
+    The hostname that will be send to the client, so the client can connect to it for getting data.</p>
+    <p><strong>Start port:</strong><br/>
+    The starting port to accept passive connections.</p>
+    <p><strong>End port:</strong><br/>
+    The ending port to accept passive connections.</p>
 </script>

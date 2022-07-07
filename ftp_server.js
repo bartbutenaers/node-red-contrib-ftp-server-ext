@@ -25,6 +25,7 @@
         this.protocol = config.protocol;
         this.hostname = config.hostname;
         this.port = config.port || 7021;
+        this.rootDirectory = config.rootDirectory;
         this.authentication = config.authentication;
         this.blacklist = config.blacklist;
         this.whitelist = config.whitelist;
@@ -162,9 +163,7 @@
                 setStatus("ERROR");
                 return;
             }
-            
-            setStatus("STARTING");
-            
+                        
             if(node.traceLog === "disable") {
                 // The ftp-srv library creates a byan logger that logs too much, therefore we will adjust the loglevel to only log warnings and errors
                 options.log = buyan.createLogger({
@@ -174,7 +173,7 @@
             }
 
             options.url = node.protocol + '://' + node.hostname + ':' + node.port;
-            
+
             if(node.authentication === "anonymous") {
                 options.anonymous = true;
             }
@@ -192,15 +191,21 @@
             
             // In case of ftps, specify at least a key pair
             if(node.protocol === "ftps") {
-                // Based on the code of a unit test (https://github.com/QuorumDMS/ftp-srv/blob/main/test/start.js)
-                options.tls = {
-                    key: fs.readFileSync(node.privateKey),
-                    cert: fs.readFileSync(node.publicCertificate)
+                try {
+                    // Based on the code of a unit test (https://github.com/QuorumDMS/ftp-srv/blob/main/test/start.js)
+                    options.tls = {
+                        key: fs.readFileSync(node.privateKey),
+                        cert: fs.readFileSync(node.publicCertificate)
+                    }
+                    
+                    // Optional certification authority
+                    if(node.certificationAuthority) {
+                        options.tls.ca = fs.readFileSync(node.certificationAuthority);
+                    }
                 }
-                
-                // Optional certification authority
-                if(node.certificationAuthority) {
-                    options.tls.ca = fs.readFileSync(node.certificationAuthority);
+                catch(err) {
+                    node.error("Cannot read PEM file " + err);
+                    return;
                 }
             }
  
@@ -224,6 +229,8 @@
                     options.pasv_max = node.passiveEndPort;
                 }
             }
+            
+            setStatus("STARTING");
 
             node.ftpServer = new FtpServer(options);
 
@@ -268,7 +275,7 @@
                     // RMD FTP command
 //This command causes the directory specified in the path name to be removed. If a relative path is provided, the server assumes the specified directory to be a subdirectory of the client's current working directory. To delete a file, the DELE command is used.
 
-                    return resolve({ root: "/" });    
+                    return resolve({ root: node.rootDirectory });    
                 }
 
                 return reject(new errors.GeneralError('Invalid username or password', 401));
@@ -340,9 +347,18 @@
                         cert: fs.readFileSync("C:\\temp\\new_pems\\cert.pem")
                         //ca: ...
                     }
+                    // This will not work until pull-request (https://github.com/QuorumDMS/ftp-srv/pull/331) is implemented
                     node.ftpServer.renewTlsOptions(tlsOptions);
                     break;
                 case "get_commands":
+                    // I still need to create a pull-request to implement this:
+                    //     getRegisteredCommands() {
+                    //       let clonedRegistry = _.cloneDeep(registry);
+                    //       Object.values(clonedRegistry).forEach((cmd) => {
+                    //         delete cmd.handler;
+                    //       });
+                    //       return clonedRegistry;
+                    //     }
                     msg.payload = node.ftpServer.getRegisteredCommands();
                     node.send(msg);
                     break;

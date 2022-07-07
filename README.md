@@ -42,6 +42,16 @@ Currently the following protocols are being supported by this node:
 *SFTP* is not supported!  While FTPS adds a layer to the FTP protocol, SFTP is an entirely different protocol based on the network protocol SSH (Secure Shell).
 
 #### Hostname:
+The hostname (or IP address) to which the FTP server will listen, to accept incoming connections.
+
+![hostnames](https://user-images.githubusercontent.com/14224149/177875626-0495b90f-a322-481c-a85b-c14383a189f2.png)
+
+1. ***127.0.0.1 (or localhost)***: this loopback is a fake network adapter that allows applications on the same host to communicate with each other without network hardware.  Which means the FTP server will only accept connections from FTP clients running on the same host.
+
+2. ***0.0.0.0***: this special IPv4 address means that the FTP server will to all the network interfaces on this host.  Which means the FTP server will accept connections from all the IP addresses of this host (in this example 127.0.0.1 and 192.168.1.1 and 10.1.2.1).
+
+3. ***IP address***: the FTP server will only listen to 1 specific network interface on this host.  In this example the FTP server will only accept connections that try to access IP address 192.168.1.1.
+
 The hostname must be the external IP address to accept external connections. Hostname `0.0.0.0` will listen on any available hosts for server and passive connections.
 
 #### Port:
@@ -49,6 +59,8 @@ The port on which the FTP server will listen for incoming connections.  When no 
 
 #### Root:
 The directory that will become the root directory for the users.
++ When no root directory is specified, then the entire filesystem will be accessible via FTP.
++ When a root folder is specified, then only that folder and its sub-folders will be accessible via FTP.
 
 #### Authentication:
 Specify which authentication mechanism needs to be used to login:

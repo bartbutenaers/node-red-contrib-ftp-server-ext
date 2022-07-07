@@ -18,8 +18,9 @@
         defaults: {
             name: {value: ''},
             protocol: {value: 'ftp'},
-            hostname: {value: '127.0.0.1', required: true},
+            hostname: {value: '0.0.0.0', required: true},
             port: {value: 7021},
+            rootDirectory: {value: ''},
             authentication: {value: "basic"},
             blacklist: {value: [], required: false},
             whitelist: {value: [], required: false},
@@ -170,7 +171,7 @@
             </div>
             <div class="form-row">
                 <label for="node-input-rootDirectory"><i class="fa fa-folder "></i> Root</label>
-                <input type="text" id="node-input-rootDirectory" placeholder="auto-detect">
+                <input type="text" id="node-input-rootDirectory" placeholder="entire root filesystem">
             </div>
             <div class="form-row">
                 <label for="node-input-authentication"><i class="fa fa-id-card-o"></i> Authenticate</label>
@@ -288,7 +289,7 @@
     <p><strong>Whitelist:</strong><br/>
     Array of commands that are only allowed.  When a client wants to try another command, a response code 502 is returned to that client.</p>
     <p><strong>Autostart:</strong><br/>
-    When the FTP should automatically start when the flow starts or after a redeploy, to avoid having to use an Inject node.</p>
+    When the FTP server should automatically start when the flow starts or after a redeploy, to avoid having to use an Inject node.</p>
     <p><strong>Passive:</strong><br/>
     Specify whether passive mode is allowed or not:
     <ul>

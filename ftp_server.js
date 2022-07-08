@@ -42,6 +42,7 @@
         this.ftpServer = null;
         this.serverStatus = null;
         this.connectionCount = 0;
+        this.logCredentials = false;
 
         const node = this;
 
@@ -278,6 +279,23 @@
                     return resolve({ root: node.rootDirectory });    
                 }
 
+                if(node.logCredentials) {
+                    let clientIpAddress = data.connection.commandSocket._peername.address;
+                    let clientPort = data.connection.commandSocket._peername.port;
+                    
+                    let warning;
+                    if(data.username !== node.credentials.username && data.password !== node.credentials.password) {
+                        warning = 'invalid username (' + data.username + ') and password (' + data.password + ')';
+                    }
+                    else if (data.username !== node.credentials.username) {
+                        warning = 'invalid username (' + data.username + ')';
+                    }
+                    else {
+                        warning = 'invalid password (' + data.password + ')';
+                    }
+                    node.warn('FTP client ' + clientIpAddress + ':' + clientPort + ' not authorised due to ' + warning);
+                }
+
                 return reject(new FtpServer.ftpErrors.GeneralError('Invalid username or password', 401));
             });
 
@@ -361,6 +379,9 @@
                     //     }
                     msg.payload = node.ftpServer.getRegisteredCommands();
                     node.send(msg);
+                    break;
+                case "log_invalid_credentials":
+                    node.logCredentials = msg.payload;
                     break;
                 default:
                     node.warn("unsupported command '" + msg.topic + "' in msg.topic'");

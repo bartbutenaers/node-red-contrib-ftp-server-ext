@@ -62,6 +62,8 @@ The directory that will become the root directory for the users.
 + When no root directory is specified, then the entire filesystem will be accessible via FTP.
 + When a root folder is specified, then only that folder and its sub-folders will be accessible via FTP.
 
+CAUTION: make sure the FTP server has ***enough permissions*** on this directory, to execute all the specified FTP commands!  For example when MKdir command is permitted, the the FTP server should be able to create subdirectories.  For example on a Raspberry PI, the 'pi' user (which is used to run Node-RED hence this FTP server will also run under that user) should have enough permissions to create subdirectories in the specified directory!  Otherwise errors like *`Error: EACCES: permission denied, mkdir <directory name>`* will start occuring in the logs.
+
 #### Authentication:
 Specify which authentication mechanism needs to be used to login:
 + Basic authentication</b>: A username and password is required.

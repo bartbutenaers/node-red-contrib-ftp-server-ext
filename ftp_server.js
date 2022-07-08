@@ -60,7 +60,7 @@
         if(node.autostart === "enable") {
             startFtpServer()
         }
-        
+
         function setStatus(newStatus, clientCount) {
             node.serverStatus = newStatus;
             
@@ -278,7 +278,7 @@
                     return resolve({ root: node.rootDirectory });    
                 }
 
-                return reject(new errors.GeneralError('Invalid username or password', 401));
+                return reject(new FtpServer.ftpErrors.GeneralError('Invalid username or password', 401));
             });
 
             node.ftpServer.on('client-error', function({connection, context, error}) {

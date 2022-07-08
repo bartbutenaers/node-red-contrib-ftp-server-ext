@@ -132,3 +132,5 @@ To ease troubleshooting in case of invalid credentials, it is useful to show mor
 When the logging of invalid credentials is enabled, detailed information will be displayed in the sidebar:
 
 ![invalid credential sidebar](https://user-images.githubusercontent.com/14224149/178063796-50c9f0a3-e03a-4d02-b97e-319215432876.png)
+
+This is particular useful in case of e.g. IP camera's acting as an FTP client, because some of these devices don't give any indication about what is going wrong.

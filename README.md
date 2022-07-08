@@ -44,7 +44,7 @@ Currently the following protocols are being supported by this node:
 #### Hostname:
 The hostname (or IP address) to which the FTP server will listen, to accept incoming connections.
 
-![hostnames](https://user-images.githubusercontent.com/14224149/177875626-0495b90f-a322-481c-a85b-c14383a189f2.png)
+![hostnames](https://user-images.githubusercontent.com/14224149/177923493-dfd570bc-f195-436e-a37c-96390e49efbf.png)
 
 1. ***127.0.0.1 (or localhost)***: this loopback is a fake network adapter that allows applications on the same host to communicate with each other without network hardware.  Which means the FTP server will only accept connections from FTP clients running on the same host.
 

@@ -120,3 +120,15 @@ The starting port to accept passive connections.
 
 #### End port:
 The ending port to accept passive connections.
+
+## Troubleshooting
+To ease troubleshooting in case of invalid credentials, it is useful to show more information in the Debug sidebar.  This behaviour can be controlled via input messages:
+
+![invalid credential flow](https://user-images.githubusercontent.com/14224149/178063254-31eb482c-af97-4f20-8023-b79b54dd69cc.png)
+```
+[{"id":"0de9b825a7890f0c","type":"inject","z":"fbee74db83781e91","name":"start logging invalid credentials","props":[{"p":"topic","vt":"str"},{"p":"payload"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"log_invalid_credentials","payload":"true","payloadType":"bool","x":1010,"y":940,"wires":[["58f1066639b9f2fa"]]},{"id":"54c177e7ab4ceb13","type":"inject","z":"fbee74db83781e91","name":"stop logging invalid credentials","props":[{"p":"topic","vt":"str"},{"p":"payload"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"log_invalid_credentials","payload":"false","payloadType":"bool","x":1010,"y":1000,"wires":[["58f1066639b9f2fa"]]},{"id":"58f1066639b9f2fa","type":"ftp-server-ext","z":"fbee74db83781e91","name":"","protocol":"ftp","hostname":"127.0.0.1","port":"7021","rootDirectory":"","authentication":"basic","blacklist":"[\"MKD\"]","whitelist":"[]","autostart":"enable","allowPassive":"block","traceLog":"disable","privateKey":"/home/pi/.node-red\\privkey.pem","publicCertificate":"/home/pi/.node-red\\cert.pem","certificationAuthority":"","passiveAddressResolver":"fixed","passiveDataHostname":"","passiveStartPort":1024,"passiveEndPort":65535,"credentials":{},"x":1260,"y":940,"wires":[[]]}]
+```
+
+When the logging of invalid credentials is enabled, detailed information will be displayed in the sidebar:
+
+![invalid credential sidebar](https://user-images.githubusercontent.com/14224149/178063796-50c9f0a3-e03a-4d02-b97e-319215432876.png)
